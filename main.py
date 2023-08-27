@@ -155,7 +155,7 @@ optimizer = torch.optim.Adam(
 
 # ----------- 4. training -------------------------------- #
 all_logits = []
-for e in range(100000):
+for e in range(1e4):
     # forward
     model = model.to(device)
     h = model(train_g, train_g.ndata["semantic_feat"], train_g.ndata['spatial_feat']).to(device)
