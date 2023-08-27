@@ -55,7 +55,7 @@ class Tourism_KG_Dataset(DGLDataset):
         self.graph = bh_graph_dgl
 
         self.graph.ndata["semantic_feat"] = features_map
-        self.graph.ndata['spatial_feat'] = th.rand(size=(bh_graph_dgl.num_nodes(), 6*2))
+        self.graph.ndata['spatial_feat'] = th.load('data/spatial_feats_Beijing.pt')
 
         train_df = pd.read_csv('./data/dataset_{}/train.csv'.format(self.city), sep=',', encoding='utf-8')
         test_df = pd.read_csv('./data/dataset_{}/test.csv'.format(self.city), sep=',', encoding='utf-8')
