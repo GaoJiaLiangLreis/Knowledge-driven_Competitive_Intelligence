@@ -1,6 +1,5 @@
 """
-
-
+训练、测试main接口
 """
 
 import itertools
@@ -22,6 +21,7 @@ from sklearn.metrics import accuracy_score
 
 from load_dataset import Tourism_KG_Dataset
 
+from Spatial_K_CI import Spatial_GraphGAT
 
 dataset = Tourism_KG_Dataset(city='Beijing')
 g = dataset[0]
@@ -39,26 +39,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 train_g = train_g.to(device)
 
 
-from dgl.nn import GATv2Conv
-
-
-# ----------- 2. create model -------------- #
-# 构建两层的GAT模型
-class GraphGAT(nn.Module):
-    def __init__(self, in_feat_dim, h_feat_dim, sm_dim, sp_dim):
-        super(GraphGAT, self).__init__()
-        self.T1 = nn.Linear(sm_dim, in_feat_dim)
-        self.T2 = nn.Linear(sp_dim, in_feat_dim)
-        self.gat_layer1 = GATv2Conv(in_feat_dim * 2, h_feat_dim, num_heads=1)
-        self.gat_layer2 = GATv2Conv(h_feat_dim, h_feat_dim, num_heads=1)
-
-    def forward(self, g, sm_feats, sp_feats):
-        in_feat = torch.cat([self.T1(sm_feats), self.T2(sp_feats)], dim=1)
-        # print(in_feat.shape)
-        h = self.gat_layer1(g, in_feat)
-        h = F.elu(h)
-        h = self.gat_layer2(g, h)
-        return h
 
 
 
@@ -125,10 +105,8 @@ class MLPPredictor(nn.Module):
 
 
 
-# GraphSAGE模型
-# model = GraphSAGE(train_g.ndata["semantic_feat"].shape[1], 64)
 # GAT模型
-model = GraphGAT(train_g.ndata['semantic_feat'].shape[1], 64,
+model = Spatial_GraphGAT(train_g.ndata['semantic_feat'].shape[1], 64,
                  sm_dim=train_g.ndata['semantic_feat'].shape[1], sp_dim=train_g.ndata['spatial_feat'].shape[1])
 
 # You can replace DotPredictor with MLPPredictor.
@@ -168,16 +146,6 @@ def compute_acc(pos_score, neg_score):
 
     return accuracy_score(labels, scores)
 
-
-######################################################################
-# The training loop goes as follows:
-#
-# .. note::
-#
-#    This tutorial does not include evaluation on a validation
-#    set. In practice you should save and evaluate the best model based on
-#    performance on the validation set.
-#
 
 # ----------- 3. set up loss and optimizer -------------- #
 # in this case, loss will in training loop
