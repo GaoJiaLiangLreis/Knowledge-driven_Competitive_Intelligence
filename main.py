@@ -6,6 +6,7 @@ import itertools
 import os
 
 os.environ["DGLBACKEND"] = "pytorch"
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5'
 
 import dgl
 import dgl.data
@@ -35,7 +36,7 @@ train_g = dgl.add_self_loop(train_g)
 
 # GPU版本运行
 # 指定运行机器
-device = torch.device("cuda:0,1,2" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_g = train_g.to(device)
 
 train_pos_g, train_neg_g = dataset[1]
