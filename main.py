@@ -29,19 +29,14 @@ g = dgl.add_self_loop(g)
 
 print(g)
 
-
 train_g = g
 
 train_g = dgl.add_self_loop(train_g)
 
 # GPU版本运行
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# 指定运行机器
+device = torch.device("cuda:0,1,2" if torch.cuda.is_available() else "cpu")
 train_g = train_g.to(device)
-
-
-
-
-
 
 train_pos_g, train_neg_g = dataset[1]
 train_pos_g = train_pos_g.to(device)
@@ -50,9 +45,6 @@ train_neg_g = train_neg_g.to(device)
 test_pos_g, test_neg_g = dataset[2]
 test_pos_g = test_pos_g.to(device)
 test_neg_g = test_neg_g.to(device)
-
-
-
 
 
 class DotPredictor(nn.Module):
@@ -64,8 +56,6 @@ class DotPredictor(nn.Module):
             g.apply_edges(fn.u_dot_v("h", "h", "score"))
             # u_dot_v returns a 1-element vector for each edge so you need to squeeze it.
             return g.edata["score"][:, 0]
-
-
 
 
 class MLPPredictor(nn.Module):
@@ -103,11 +93,10 @@ class MLPPredictor(nn.Module):
             return g.edata["score"]
 
 
-
-
 # GAT模型
 model = Spatial_GraphGAT(train_g.ndata['semantic_feat'].shape[1], 64,
-                 sm_dim=train_g.ndata['semantic_feat'].shape[1], sp_dim=train_g.ndata['spatial_feat'].shape[1])
+                         sm_dim=train_g.ndata['semantic_feat'].shape[1], sp_dim=train_g.ndata['spatial_feat'].shape[1],
+                         num_heads=8)
 
 # You can replace DotPredictor with MLPPredictor.
 pred = MLPPredictor(64).to(device)
@@ -155,7 +144,7 @@ optimizer = torch.optim.Adam(
 
 # ----------- 4. training -------------------------------- #
 all_logits = []
-for e in range(1e4):
+for e in range(int(1e5)):
     # forward
     model = model.to(device)
     h = model(train_g, train_g.ndata["semantic_feat"], train_g.ndata['spatial_feat']).to(device)
@@ -177,5 +166,3 @@ with torch.no_grad():
     neg_score = pred(test_neg_g, h)
     print("AUC", compute_auc(pos_score, neg_score))
     print("ACC", compute_acc(pos_score, neg_score))
-
-
