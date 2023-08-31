@@ -7,6 +7,9 @@ import torch
 import os
 import torch.nn.functional as F
 
+from scipy.stats import poisson
+import numpy as np
+
 os.environ["DGLBACKEND"] = "pytorch"
 
 
@@ -36,9 +39,12 @@ class GATLayer(nn.Module):
         e = F.leaky_relu(a)
 
         # print(edges.data)
-        dists = edges.data['dist']
-        probs = torch.poisson(dists)
-        # print(prob.shape)
+        dists = edges.data['dist'].cpu().numpy()
+        means = np.mean(dists)
+        probs = torch.tensor([poisson.pmf(k=dist//2, mu=means) for dist in dists]).cuda()
+        probs = torch.unsqueeze(probs, dim=1)
+        # print(probs.shape)
+        # print(e.shape)
         e = torch.mul(probs, e)
 
         return {"e": e}
