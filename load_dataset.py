@@ -5,6 +5,7 @@ import networkx as nx
 import torch as th
 import pickle as pkl
 import json
+import numpy as np
 
 
 class Tourism_KG_Dataset(DGLDataset):
@@ -54,7 +55,7 @@ class Tourism_KG_Dataset(DGLDataset):
             if entity in entity_idx_in_TKG:
                 ent_idx = entity_idx_in_TKG[entity]['node_idx']
                 features_map.append(features[ent_idx].numpy())
-        features_map = th.tensor(features_map)
+        features_map = th.tensor(np.array(features_map))
         # print(features_map.shape)
 
         self.graph = bh_graph_dgl

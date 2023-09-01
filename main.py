@@ -6,7 +6,7 @@ import itertools
 import os
 
 os.environ["DGLBACKEND"] = "pytorch"
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4,5'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 
 import dgl
 import dgl.data
@@ -82,7 +82,7 @@ class MLPPredictor(nn.Module):
         dict
             A dictionary of new edge features.
         """
-        h = torch.cat([edges.src["h"], edges.dst["h"]], -1)
+        h = torch.cat([edges.src["h"], edges.dst["h"]], -1).float()
         # print(h.shape)
         # print(F.relu(self.W1(h)).shape)
         return {"score": self.W2(F.relu(self.W1(h))).squeeze(1)}

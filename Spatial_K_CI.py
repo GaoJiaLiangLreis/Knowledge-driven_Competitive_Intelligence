@@ -63,13 +63,18 @@ class GATLayer(nn.Module):
 
     def forward(self, g, h):
         self.g = g
-        # print(h.shape)
-        z = self.fc(h)
+
+        h = torch.tensor(h, dtype=torch.float)
+
+        # print(h.shape, self.fc.weight.shape, h.float().dtype, self.fc.weight.dtype)
+        z = self.fc(h.float())
         self.g.ndata["z"] = z
         # equation (2)
         self.g.apply_edges(self.edge_attention)
         # equation (3) & (4)
         self.g.update_all(self.message_func, self.reduce_func)
+
+        # print(self.g.ndata['h'].shape)
         return self.g.ndata.pop("h")
 
 
@@ -114,5 +119,6 @@ class Spatial_GraphGAT(nn.Module):
 
         h = self.gat_layer1(g, in_feat)
         h = F.elu(h)
+        # print(h.shape)
         h = self.gat_layer2(g, h)
         return h
